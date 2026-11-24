@@ -1,0 +1,41 @@
+# Bài 3 - Theo dõi sức khỏe toàn bộ VPS bằng Node Exporter
+# Chạy: docker compose up -d
+name: ss13-bai3
+
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    restart: unless-stopped
+    # Dùng chung PID namespace với Host -> thấy được tiến trình thật của máy chủ
+    pid: host
+    command:
+      # Chỉ cho Node Exporter đọc /proc, /sys, / của HOST (đã mount bên dưới)
+      # thay vì /proc, /sys ảo của chính container
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      # Bỏ qua các mount point ảo để số liệu ổ đĩa không bị nhiễu
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/.+|rootfs/run/docker/.+)($$|/)'
+      - '--collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$$'
+    volumes:
+      - /proc:/host/proc:ro      # CPU, RAM, load average, tiến trình, network (thông số kernel)
+      - /sys:/host/sys:ro        # phần cứng: ổ đĩa, nhiệt độ, card mạng, cpufreq
+      - /:/rootfs:ro             # hệ thống file gốc -> dung lượng ổ cứng còn trống / đã đầy
+    # KHÔNG publish cổng 9100 ra Internet. Chỉ mở trong mạng nội bộ Docker cho Prometheus.
+    expose:
+      - "9100"
+    # Nếu thật sự cần truy cập từ Host để debug thì chỉ bind vào loopback:
+    # ports:
+    #   - "127.0.0.1:9100:9100"
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - node-exporter

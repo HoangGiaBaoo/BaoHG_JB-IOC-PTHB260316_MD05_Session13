@@ -1,0 +1,8 @@
+# LEGACY - cấu hình gốc bị lỗi (giữ lại để so sánh)
+# Prometheus chạy trong Docker -> 'localhost' là chính container Prometheus,
+# không phải máy Host nơi Backend đang chạy => State: DOWN, connection refused.
+# Ngoài ra Prometheus gọi mặc định /metrics, Spring Boot không có đường dẫn này (404).
+scrape_configs:
+  - job_name: 'backend'
+    static_configs:
+      - targets: ['localhost:8080']

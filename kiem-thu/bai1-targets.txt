@@ -1,0 +1,12 @@
+=== (1) LEGACY: localhost:8080, metrics_path mặc định
+job=backend url=http://localhost:8080/metrics health=down error='Get "http://localhost:8080/metrics": dial tcp [::1]:8080: connect: connection refused'
+=== (2) Chỉ sửa host (host.docker.internal), CHƯA thêm metrics_path
+job=backend url=http://host.docker.internal:8080/metrics health=down error='server returned HTTP status 404 '
+=== (3) ĐÃ SỬA: host.docker.internal + metrics_path=/actuator/prometheus
+job=backend url=http://host.docker.internal:8080/actuator/prometheus health=up error=''
+=== PromQL: up{job="backend"}
+{'__name__': 'up', 'application': 'ecommerce-api', 'env': 'dev', 'instance': 'host.docker.internal:8080', 'job': 'backend'} => 1
+=== PromQL: sum(jvm_memory_used_bytes{area="heap"}) / 1024 / 1024  (MB heap đang dùng)
+{} => 35.88922119140625
+=== PromQL: process_cpu_usage
+{'__name__': 'process_cpu_usage', 'application': 'ecommerce-api', 'env': 'dev', 'exported_application': 'ecommerce-api', 'instance': 'host.docker.internal:8080', 'job': 'backend'} => 0.0007147338973654932

@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s       # 15 giây cào dữ liệu 1 lần
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'backend'
+    # SỬA 1: Spring Boot Actuator KHÔNG có /metrics (mặc định của Prometheus).
+    # Endpoint đúng là /actuator/prometheus -> bắt buộc khai báo metrics_path.
+    metrics_path: /actuator/prometheus
+    scheme: http
+    static_configs:
+      # SỬA 2: 'localhost' trong container = chính container Prometheus.
+      # Dùng host.docker.internal để trỏ ra máy Host thật đang chạy Backend.
+      # - Docker Desktop (Windows/macOS): có sẵn tên này.
+      # - Linux/VPS: cần thêm extra_hosts "host.docker.internal:host-gateway" (xem docker-compose.yml)
+      #   hoặc thay bằng IP thật của VPS, ví dụ: ['103.170.120.15:8080'].
+      - targets: ['host.docker.internal:8080']
+        labels:
+          env: 'dev'

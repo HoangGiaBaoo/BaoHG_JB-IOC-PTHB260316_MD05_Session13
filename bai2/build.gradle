@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.16'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.baohg'
+version = '0.0.1-SNAPSHOT'
+description = 'E-commerce Backend - Session 13 (Prometheus + Actuator)'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // ===== Bài 2: "Bật radar" cho Spring Boot =====
+    // 1) Actuator: sinh ra các endpoint /actuator/** (health, info, metrics...).
+    //    Bên trong đã kèm micrometer-core để đo CPU, Heap, GC, thread, HTTP request...
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // 2) BẪY: dependency hay bị quên.
+    //    Thiếu dòng này thì KHÔNG có endpoint /actuator/prometheus, chỉ có /actuator/metrics trả về JSON,
+    //    mà Prometheus không đọc được JSON.
+    //    Có dòng này thì Micrometer xuất dữ liệu theo định dạng text chuẩn của Prometheus.
+    //    Version do Spring Boot BOM quản lý nên không cần ghi.
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// Tên file jar cố định để Dockerfile copy cho dễ
+tasks.named('bootJar') {
+    archiveFileName = 'ecommerce-api.jar'
+}
+tasks.named('jar') {
+    enabled = false
+}

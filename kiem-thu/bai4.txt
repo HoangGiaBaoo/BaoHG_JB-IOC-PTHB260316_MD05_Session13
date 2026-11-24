@@ -1,0 +1,24 @@
+=== docker compose ps
+SERVICE         STATUS                    PORTS
+ecommerce-api   Up 39 seconds (healthy)   8080/tcp
+prometheus      Up 33 seconds             0.0.0.0:19190->9090/tcp, [::]:19190->9090/tcp
+
+=== Mạng mặc định do Compose tạo
+ss13-bai4_default: ss13-bai4-ecommerce-api-1(172.26.0.2/16) ss13-bai4-prometheus-1(172.26.0.3/16) 
+
+=== Targets
+job=ecommerce-api url=http://ecommerce-api:8080/actuator/prometheus health=up error=''
+job=prometheus url=http://localhost:9090/metrics health=up error=''
+
+=== ecommerce-api KHÔNG lộ cổng ra Host
+Host curl localhost:8080/actuator/health -> HTTP 000  (000 = không kết nối được)
+Từ container prometheus: wget http://ecommerce-api:8080/actuator/health -> {"status":"UP"}
+
+=== File cấu hình bên trong container (bind mount)
+-rwxrwxrwx    1 root     root           521 Nov 24 13:39 /etc/prometheus/prometheus.yml
+
+=== PromQL: up
+{'__name__': 'up', 'env': 'docker', 'instance': 'ecommerce-api:8080', 'job': 'ecommerce-api'} => 1
+{'__name__': 'up', 'instance': 'localhost:9090', 'job': 'prometheus'} => 1
+=== PromQL: Heap đang dùng (MB)
+{'instance': 'ecommerce-api:8080'} => 29.83702850341797

@@ -1,0 +1,8 @@
+=== Host: curl localhost:8080/actuator/health
+{"status":"UP"}
+=== Host: curl localhost:8080/metrics (đường dẫn mặc định của Prometheus)
+HTTP 404
+=== Host: curl localhost:8080/actuator/prometheus | head
+# TYPE jvm_memory_used_bytes gauge
+jvm_memory_used_bytes{application="ecommerce-api",area="heap",id="G1 Eden Space"} 1.6777216E7
+jvm_memory_used_bytes{application="ecommerce-api",area="heap",id="G1 Old Gen"} 1.8269824E7

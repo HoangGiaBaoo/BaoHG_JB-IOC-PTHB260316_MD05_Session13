@@ -1,0 +1,27 @@
+=== Targets trên Prometheus
+job=backend url=http://host.docker.internal:8080/actuator/prometheus health=up error=''
+job=node url=http://node-exporter:9100/metrics health=up error=''
+=== CPU đang dùng (%) - 100 - idle
+{} => 31.928910929134332
+=== RAM hệ điều hành còn khả dụng (%)
+{'instance': 'node-exporter:9100', 'instance_name': 'vps-ecommerce', 'job': 'node'} => 72.38185649585883
+=== Tổng RAM máy chủ (GB)
+{'instance': 'node-exporter:9100', 'instance_name': 'vps-ecommerce', 'job': 'node'} => 3.8214454650878906
+=== Ổ cứng / đã dùng (%)
+=== Load average 1 phút
+{'__name__': 'node_load1', 'instance': 'node-exporter:9100', 'instance_name': 'vps-ecommerce', 'job': 'node'} => 0.3
+=== Số CPU core
+{} => 20
+
+=== So sánh: KHÔNG mount /proc của host thì thấy gì? (node-exporter đọc /proc của chính container)
+--- Số tiến trình host thấy (pid: host + /host/proc):
+32
+--- Số tiến trình trong container thường (không pid: host):
+2
+
+=== Cổng 9100 có lộ ra Host không?
+curl localhost:9100/metrics từ Host -> 000 (000 = không kết nối được, đúng ý đồ)
+Từ trong mạng Docker (container prometheus) -> 1824 dòng metric node_*
+
+=== Ổ cứng đã dùng (%) - trên Docker Desktop, "/" của VM là overlay (bị loại), ổ thật là /var/lib (ext4). Trên VPS thật dùng mountpoint="/"
+{'device': '/dev/sde', 'fstype': 'ext4', 'instance': 'node-exporter:9100', 'instance_name': 'vps-ecommerce', 'job': 'node', 'mountpoint': '/var/lib'} => 7.693889836633275

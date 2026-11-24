@@ -1,0 +1,15 @@
+# Prometheus chạy trong Docker, Backend chạy trực tiếp trên Host (java -jar / IDE) ở cổng 8080.
+name: ss13-bai1
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    # Trên Linux (VPS) tên host.docker.internal KHÔNG tự có -> ánh xạ nó vào gateway của Host.
+    # Trên Docker Desktop dòng này vô hại.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

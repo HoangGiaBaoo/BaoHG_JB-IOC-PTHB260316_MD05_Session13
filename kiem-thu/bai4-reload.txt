@@ -1,0 +1,31 @@
+=== File trong container:
+-rwxrwxrwx    1 root     root           521 Nov 24 13:39 /etc/prometheus/prometheus.yml
+
+=== Trước khi sửa: scrape_interval Prometheus đang dùng = 15s
+Đã sửa trên Host: scrape_interval: 5s
+Trong container file đã đổi: scrape_interval: 5s
+Sau 20 giây KHÔNG reload: Prometheus vẫn dùng scrape_interval = 15s   <-- KHÔNG tự nhận
+
+=== Kiểm tra cú pháp trước khi nạp: promtool check config
+Checking /etc/prometheus/prometheus.yml
+ SUCCESS: /etc/prometheus/prometheus.yml is valid prometheus config file syntax
+
+
+=== curl -X POST http://localhost:9090/-/reload
+HTTP 200
+Sau reload: scrape_interval = 5s
+Container KHÔNG bị restart (StartedAt giữ nguyên): 2026-11-24T13:45:46.190269266Z RestartCount=0
+Log Prometheus:
+prometheus-1  | time=2026-11-24T13:45:46.462Z level=INFO source=main.go:1537 msg="Completed loading of configuration file" db_storage=14.61µs remote_storage=2.139µs web_handler=770ns query_engine=1.779µs scrape=302.746µs scrape_sd=102.312µs notify=1.469µs notify_sd=853ns rules=2.179µs tracing=6.062µs filename=/etc/prometheus/prometheus.yml totalDuration=3.445003ms
+prometheus-1  | time=2026-11-24T13:47:07.852Z level=INFO source=main.go:1537 msg="Completed loading of configuration file" db_storage=5.288µs remote_storage=3.58µs web_handler=1.554µs query_engine=4.125µs scrape=1.20892ms scrape_sd=25.283µs notify=3.409µs notify_sd=1.053µs rules=3.235µs tracing=7.165µs filename=/etc/prometheus/prometheus.yml totalDuration=5.795918ms
+
+=== Cách 2: gửi tín hiệu SIGHUP (không cần --web.enable-lifecycle)
+ Container ss13-bai4-prometheus-1 Killed   (Compose ghi "Killed" cho mọi tín hiệu; container vẫn Up, RestartCount=0)
+Sau SIGHUP: scrape_interval = 15s
+
+=== Nạp cấu hình LỖI: Prometheus giữ cấu hình cũ, không sập
+failed to reload config: couldn't load configuration (--config.file="/etc/prometheus/prometheus.yml"): parsing YAML file /etc/prometheus/prometheus.yml: yaml: unmarshal errors:
+  line 3: cannot unmarshal !!str `targets` into struct { Targets []string "yaml:\"targets\""; Labels model.LabelSet "yaml:\"labels\"" }
+ HTTP 500
+Prometheus vẫn chạy: Prometheus Server is Healthy.
+scrape_interval vẫn = 15s

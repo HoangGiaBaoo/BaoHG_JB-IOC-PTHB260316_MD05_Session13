@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Prometheus tự giám sát chính nó
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']   # ở đây localhost đúng là container Prometheus
+
+  # E-commerce API - gọi trực tiếp bằng TÊN SERVICE trong mạng Docker mặc định
+  - job_name: 'ecommerce-api'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['ecommerce-api:8080']
+        labels:
+          env: 'docker'

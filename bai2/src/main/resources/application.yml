@@ -1,0 +1,54 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ecommerce-api
+
+# =====================================================================
+# Bài 2 - Mở "radar" cho Prometheus, khóa các endpoint nguy hiểm
+# =====================================================================
+management:
+  endpoints:
+    # Quyền truy cập mặc định của MỌI endpoint: none = tắt hết (deny-by-default).
+    # (Spring Boot < 3.4 dùng: management.endpoints.enabled-by-default: false)
+    access:
+      default: none
+    web:
+      base-path: /actuator
+      exposure:
+        # Chỉ phơi bày qua HTTP đúng 3 endpoint cần thiết
+        include: health,info,prometheus
+        # Phòng thủ 2 lớp: dù ai đó sửa "include" thành "*" thì các endpoint này vẫn bị chặn
+        # (exclude luôn được ưu tiên hơn include)
+        exclude: shutdown,env,configprops,beans,heapdump,threaddump,loggers,mappings,caches,scheduledtasks,sessions
+  endpoint:
+    # Bật lại (chỉ đọc) đúng những endpoint được phép dùng
+    health:
+      access: read-only
+      show-details: never        # không lộ thông tin DB, ổ đĩa... ra ngoài
+    info:
+      access: read-only
+    prometheus:
+      access: read-only
+    # Khóa chết các endpoint nguy hiểm
+    shutdown:
+      access: none               # POST /actuator/shutdown -> tắt ứng dụng từ xa
+    env:
+      access: none               # lộ biến môi trường, mật khẩu DB, API key
+      show-values: never
+    configprops:
+      access: none
+      show-values: never
+    heapdump:
+      access: none               # tải về toàn bộ bộ nhớ JVM (chứa cả dữ liệu nhạy cảm)
+
+  # Gắn thêm label application="ecommerce-api" cho mọi metric để lọc trên Prometheus/Grafana
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+  prometheus:
+    metrics:
+      export:
+        enabled: true

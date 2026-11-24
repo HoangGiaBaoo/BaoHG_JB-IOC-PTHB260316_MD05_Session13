@@ -1,0 +1,46 @@
+# Bài 4 - Cụm giám sát khép kín: E-commerce API + Prometheus
+# Chạy:     docker compose up -d --build
+# Dashboard: http://localhost:9090
+name: ss13-bai4
+
+services:
+  ecommerce-api:
+    # Image Spring Boot build từ project Bài 2 (bai2/Dockerfile)
+    build:
+      context: ../bai2
+    image: baohg/ecommerce-api:1.0.0
+    restart: unless-stopped
+    # KHÔNG có "ports" -> cổng 8080 không lộ ra Host/Internet.
+    # Chỉ các container cùng mạng Docker (Prometheus) mới gọi được ecommerce-api:8080.
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /actuator/health HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q UP <&3'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      # Bật API /-/reload để nạp lại cấu hình mà không cần restart container
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"            # mở cho Dev xem dashboard
+    volumes:
+      # Bind mount: nạp file prometheus.yml từ máy Host vào container
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Named volume giữ dữ liệu metric khi container bị tạo lại
+      - prometheus-data:/prometheus
+    depends_on:
+      ecommerce-api:
+        condition: service_healthy
+
+# Không khai báo "networks" -> Compose tự tạo mạng mặc định <tên-thư-mục>_default,
+# trong đó mỗi service được phân giải DNS bằng chính tên service.
+volumes:
+  prometheus-data:

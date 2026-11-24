@@ -1,0 +1,5 @@
+# Chỉ dùng khi kiểm thử trên máy đã có Prometheus khác chiếm cổng 9090
+services:
+  prometheus:
+    ports: !override
+      - "19190:9090"

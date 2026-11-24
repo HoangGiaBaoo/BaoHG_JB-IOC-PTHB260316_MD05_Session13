@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Ứng dụng Java (Bài 1 + Bài 2) - backend chạy trên Host
+  - job_name: 'backend'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+
+  # Bài 3 - Sức khỏe hệ điều hành của VPS
+  - job_name: 'node'
+    # Node Exporter dùng đúng /metrics (mặc định) nên KHÔNG cần metrics_path
+    static_configs:
+      # Gọi bằng tên service trong cùng mạng Docker, cổng mặc định 9100
+      - targets: ['node-exporter:9100']
+        labels:
+          instance_name: 'vps-ecommerce'

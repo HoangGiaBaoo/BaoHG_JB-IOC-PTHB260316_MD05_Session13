@@ -1,0 +1,12 @@
+Checking bai1/prometheus.yml
+ SUCCESS: bai1/prometheus.yml is valid prometheus config file syntax
+
+Checking bai3/prometheus.yml
+ SUCCESS: bai3/prometheus.yml is valid prometheus config file syntax
+
+Checking bai4/prometheus.yml
+ SUCCESS: bai4/prometheus.yml is valid prometheus config file syntax
+
+bai1 docker-compose.yml: OK
+bai3 docker-compose.yml: OK
+bai4 docker-compose.yml: OK
